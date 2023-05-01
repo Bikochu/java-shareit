@@ -1,10 +1,9 @@
 package ru.practicum.shareit.user.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.service.UserServiceImpl;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -14,36 +13,32 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(path = "/users")
+@RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserServiceImpl userServiceImpl;
 
     @GetMapping
-    public List<User> getUsers() {
-        return userService.getUsers();
+    public List<UserDto> getUsers() {
+        return userServiceImpl.getUsers();
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) {
-        return userService.addUser(user);
+    public UserDto addUser(@Valid @RequestBody UserDto userDto) {
+        return userServiceImpl.addUser(userDto);
     }
 
     @PatchMapping("/{userId}")
-    public User updateUser(@PathVariable("userId") Long userId, @RequestBody UserDto userDto) {
-        return userService.updateUser(userId, userDto);
+    public UserDto updateUser(@PathVariable("userId") Long userId, @RequestBody UserDto userDto) {
+        return userServiceImpl.updateUser(userId, userDto);
     }
 
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable("userId") Long userId) {
-        return userService.findUserById(userId);
+    public UserDto getUserById(@PathVariable("userId") Long userId) {
+        return userServiceImpl.findUserById(userId);
     }
 
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable("userId") Long userId) {
-        userService.deleteUser(userId);
+        userServiceImpl.deleteUser(userId);
     }
 }

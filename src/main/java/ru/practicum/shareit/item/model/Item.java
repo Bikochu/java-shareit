@@ -3,7 +3,7 @@ package ru.practicum.shareit.item.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -25,7 +25,7 @@ public class Item {
     @NotNull(message = "Item availability can't be Null")
     private Boolean available;
 
-    private User owner;
+    private UserDto owner;
     private ItemRequest request;
 
     public boolean isAvailable() {
