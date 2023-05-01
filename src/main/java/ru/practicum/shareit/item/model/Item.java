@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.model;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 
@@ -13,20 +15,21 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Item {
-    private Long id;
+    Long id;
 
     @NotEmpty(message = "Item name can't be Empty")
-    private String name;
+    String name;
 
     @NotEmpty(message = "Item description can't be Empty")
-    private String description;
+    String description;
 
     @NotNull(message = "Item availability can't be Null")
-    private Boolean available;
+    Boolean available;
 
-    private UserDto owner;
-    private ItemRequest request;
+    UserDto owner;
+    ItemRequest request;
 
     public boolean isAvailable() {
         return available;

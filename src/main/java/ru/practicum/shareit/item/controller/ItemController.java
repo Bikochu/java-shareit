@@ -17,32 +17,33 @@ import java.util.List;
 public class ItemController {
 
     private final ItemServiceImpl itemServiceImpl;
+    private static final String header = "X-Sharer-User-Id";
 
     @GetMapping
-    public List<ItemDto> getItemsByUser(@RequestHeader(value = "X-Sharer-User-Id", required = true) Long userId) {
+    public List<ItemDto> getItemsByUser(@RequestHeader(header) Long userId) {
         return itemServiceImpl.getItemsByUser(userId);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto findItemById(@RequestHeader(value = "X-Sharer-User-Id", required = true) Long userId,
+    public ItemDto findItemById(@RequestHeader(header) Long userId,
                                 @PathVariable("itemId") Long itemId) {
         return itemServiceImpl.findItemById(userId, itemId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestHeader(value = "X-Sharer-User-Id", required = true) Long userId,
+    public List<ItemDto> searchItems(@RequestHeader(header) Long userId,
                                      @RequestParam String text) {
         return itemServiceImpl.searchItems(userId, text);
     }
 
     @PostMapping
-    public ItemDto addItem(@Valid @RequestHeader(value = "X-Sharer-User-Id", required = true) Long userId,
+    public ItemDto addItem(@Valid @RequestHeader(header) Long userId,
                            @Valid @RequestBody ItemDto itemDto) {
         return itemServiceImpl.addItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader(value = "X-Sharer-User-Id", required = true) Long userId,
+    public ItemDto updateItem(@RequestHeader(header) Long userId,
                               @PathVariable("itemId") Long itemId,
                               @RequestBody ItemDto itemDto) {
         return itemServiceImpl.updateItem(userId, itemId, itemDto);
