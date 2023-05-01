@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
 
     private final UserServiceImpl userServiceImpl;
-    private static Long id = 0L;
+    private Long id = 0L;
     private final Map<Long, ItemDto> items = new HashMap<>();
 
 

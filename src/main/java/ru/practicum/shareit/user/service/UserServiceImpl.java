@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private static Long id = 0L;
+    private Long id = 0L;
     public final Map<Long, UserDto> users = new HashMap<>();
 
     @Override
