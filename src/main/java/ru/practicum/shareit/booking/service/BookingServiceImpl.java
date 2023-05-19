@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingDtoIn;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -35,75 +35,57 @@ public class BookingServiceImpl implements BookingService {
     private final ItemService itemService;
 
     @Override
-    public List<BookingDto> getAllBookings(Long userId) {
-        userService.findUserById(userId);
-        return bookingRepository.findAll()
-                .stream()
-                .filter(booking -> booking.getBooker().getId().equals(userId))
-                .map(BookingMapper::toBookingDto)
-                .sorted(Comparator.comparing(BookingDto::getStart).reversed())
-                .collect(Collectors.toList());
-    }
-
-
-    @Override
     public List<BookingDto> getAllBookingsWithState(Long userId, String state) {
         userService.findUserById(userId);
-        List<BookingDto> booking = bookingRepository.findAll().stream()
-                .filter(booking1 -> booking1.getBooker().getId().equals(userId))
+        List<BookingDto> booking = bookingRepository.findAllByBookerIdOrderByStartDesc(userId).stream()
                 .map(BookingMapper::toBookingDto)
-                .sorted(Comparator.comparing(BookingDto::getStart).reversed())
+                .collect(Collectors.toList());
+        return getByState(booking, state);
+    }
+
+    @Override
+    public List<BookingDto> getBookingByOwner(Long userId, String state) {
+        userService.findUserById(userId);
+        List<BookingDto> booking = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId).stream()
+                .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
         return getByState(booking, state);
     }
 
     @Override
     public List<BookingDto> getBookingByOwnerId(Long ownerId) {
-        return bookingRepository.findAll().stream()
-                .filter(booking -> booking.getItem().getOwner().getId().equals(ownerId))
-                .sorted(Comparator.comparing(Booking::getStart))
+        return bookingRepository.findAllByItemOwnerIdOrderByStartAsc(ownerId).stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public BookingDto addBooking(Long userId, BookingDtoIn bookingDtoIn) {
+    public BookingDto addBooking(Long userId, BookingRequestDto bookingRequestDto) {
         User booker = UserMapper.toUser(userService.findUserById(userId));
-        Item item = itemService.findItem(bookingDtoIn.getItemId());
+        Item item = itemService.findItem(bookingRequestDto.getItemId());
         if (!item.isAvailable()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Item is not available.");
         }
-        if (bookingDtoIn.getStart().isAfter(bookingDtoIn.getEnd())
-                || bookingDtoIn.getEnd().isBefore(bookingDtoIn.getStart())
-                || bookingDtoIn.getStart().equals(bookingDtoIn.getEnd())) {
+        if (bookingRequestDto.getStart().isAfter(bookingRequestDto.getEnd())
+                || bookingRequestDto.getEnd().isBefore(bookingRequestDto.getStart())
+                || bookingRequestDto.getStart().equals(bookingRequestDto.getEnd())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Timestamps");
         }
-        if (bookingDtoIn.getStart() == null || bookingDtoIn.getEnd() == null) {
+        if (bookingRequestDto.getStart() == null || bookingRequestDto.getEnd() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Timestamps");
         }
         if (item.getOwner().equals(booker)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "You are owner!");
         }
         Booking booking = new Booking(
-                bookingDtoIn.getId(),
-                bookingDtoIn.getStart(),
-                bookingDtoIn.getEnd(),
+                bookingRequestDto.getId(),
+                bookingRequestDto.getStart(),
+                bookingRequestDto.getEnd(),
                 item,
                 booker,
                 Status.WAITING);
         bookingRepository.save(booking);
         return BookingMapper.toBookingDto(booking);
-    }
-
-    @Override
-    public List<BookingDto> getBookingByOwner(Long userId, String state) {
-        userService.findUserById(userId);
-        List<BookingDto> booking = bookingRepository.findAll().stream()
-                .filter(booking1 -> booking1.getItem().getOwner().getId().equals(userId))
-                .map(BookingMapper::toBookingDto)
-                .sorted(Comparator.comparing(BookingDto::getStart).reversed())
-                .collect(Collectors.toList());
-        return getByState(booking, state);
     }
 
     @Override
@@ -144,8 +126,6 @@ public class BookingServiceImpl implements BookingService {
 
     public List<BookingDto> getByState(List<BookingDto> bookings, String state) {
         switch (state) {
-            case "ALL":
-                return bookings;
             case "WAITING":
                 return bookings.stream()
                         .filter(booking1 -> booking1.getStatus().equals("WAITING"))
@@ -155,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
                 return bookings.stream()
                         .filter(booking1 -> booking1.getStart().isBefore(LocalDateTime.now())
                                 && booking1.getEnd().isAfter(LocalDateTime.now()))
-                        .sorted(Comparator.comparing(BookingDto::getStart).reversed())
+                        .sorted(Comparator.comparing(BookingDto::getId))
                         .collect(Collectors.toList());
             case "REJECTED":
                 return bookings.stream()
@@ -172,8 +152,10 @@ public class BookingServiceImpl implements BookingService {
                         .filter(booking1 -> booking1.getEnd().isBefore(LocalDateTime.now()))
                         .sorted(Comparator.comparing(BookingDto::getStart).reversed())
                         .collect(Collectors.toList());
+            case "UNSUPPORTED_STATUS":
+                throw new UnsupportedStateException("Unknown state: " + state);
             default:
-                throw new UnsupportedStateException("Unknown state: UNSUPPORTED_STATUS");
+                return bookings;
         }
     }
 }

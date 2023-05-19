@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.practicum.shareit.booking.dto.BookingDtoIn;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -71,14 +71,14 @@ public class ItemServiceImpl implements ItemService {
                     List<Booking> bookings = bookingRepository.findBookingByItemId(itemDto.getId());
                     bookings.sort(Comparator.comparing(Booking::getStart));
                     LocalDateTime currentDateTime = LocalDateTime.now();
-                    BookingDtoIn lastBooking = null;
-                    BookingDtoIn nextBooking = null;
+                    BookingRequestDto lastBooking = null;
+                    BookingRequestDto nextBooking = null;
 
                     for (Booking booking : bookings) {
                         if (booking.getEnd().isBefore(currentDateTime)) {
-                            lastBooking = BookingMapper.toBookingDtoIn(booking);
+                            lastBooking = BookingMapper.toBookingRequestDto(booking);
                         } else if (booking.getStart().isAfter(currentDateTime)) {
-                            nextBooking = BookingMapper.toBookingDtoIn(booking);
+                            nextBooking = BookingMapper.toBookingRequestDto(booking);
                             break;
                         }
                     }
@@ -117,25 +117,22 @@ public class ItemServiceImpl implements ItemService {
         userService.findUserById(userId);
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException("Item not found."));
 
-        List<BookingDtoIn> bookings = bookingRepository.findAll().stream()
-                .filter(booking -> booking.getItem().getOwner().getId().equals(userId))
-                .sorted(Comparator.comparing(Booking::getStart))
-                .map(BookingMapper::toBookingDtoIn)
+        List<BookingRequestDto> bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartAsc(userId, Status.APPROVED).stream()
+                .map(BookingMapper::toBookingRequestDto)
                 .collect(Collectors.toList());
 
         LocalDateTime currentDateTime = LocalDateTime.now();
-        BookingDtoIn lastBooking = bookings.stream()
-                .filter(booking -> booking.getStart().isBefore(currentDateTime) && booking.getStatus().equals("APPROVED"))
-                .max(Comparator.comparing(BookingDtoIn::getEnd))
+        BookingRequestDto lastBooking = bookings.stream()
+                .filter(booking -> booking.getStart().isBefore(currentDateTime))
+                .max(Comparator.comparing(BookingRequestDto::getEnd))
                 .orElse(null);
 
-        BookingDtoIn nextBooking = bookings.stream()
-                .filter(booking -> booking.getStart().isAfter(currentDateTime) && booking.getStatus().equals("APPROVED"))
+        BookingRequestDto nextBooking = bookings.stream()
+                .filter(booking -> booking.getStart().isAfter(currentDateTime))
                 .findFirst()
                 .orElse(null);
 
-        List<CommentDto> comments = commentRepository.findAll().stream()
-                .filter(comment -> comment.getItem().getId().equals(itemId))
+        List<CommentDto> comments = commentRepository.findAllByItemId(itemId).stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
 
@@ -177,13 +174,12 @@ public class ItemServiceImpl implements ItemService {
         ItemDto item = ItemMapper.toItemDto(findItem(itemId));
         Comment existingComment = commentRepository.findByAuthorIdAndItemId(userId, itemId);
         if (existingComment != null) {
-            return CommentMapper.toCommentDto(existingComment);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already commented this item.");
         }
-        List<Booking> bookings = bookingRepository.findBookingByItemId(itemId).stream()
-                .filter(booking -> booking.getBooker().getId().equals(userId)
-                        && booking.getStatus().equals(Status.APPROVED)
-                        && booking.getEnd().isBefore(LocalDateTime.now()))
+        List<Booking> bookings = bookingRepository.findBookingByItemIdAndBookerIdAndStatus(itemId, userId, Status.APPROVED).stream()
+                .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
                 .collect(Collectors.toList());
+
         if (bookings.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can't comment.");
         }

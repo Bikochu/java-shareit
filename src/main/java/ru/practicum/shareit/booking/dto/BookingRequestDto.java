@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BookingDtoIn {
+public class BookingRequestDto {
     Long id;
 
     @NotNull(message = "Time can't be null")
