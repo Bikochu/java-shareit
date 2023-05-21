@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,15 +36,16 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ItemServiceImpl implements ItemService {
 
-    private final UserService userService;
+    UserService userService;
 
-    private final BookingRepository bookingRepository;
+    BookingRepository bookingRepository;
 
-    private final ItemRepository itemRepository;
+    ItemRepository itemRepository;
 
-    private final CommentRepository commentRepository;
+    CommentRepository commentRepository;
 
     @Override
     public List<ItemDto> getAllItems() {
