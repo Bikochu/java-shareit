@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    List<Booking> findBookingByItemId(Long itemId);
 
     List<Booking> findAllByBookerIdOrderByStartDesc(Long userId);
 
@@ -25,10 +24,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByItemOwnerIdOrderByStartAsc(Long userId);
 
-    List<Booking> findAllByItemOwnerIdAndStatusOrderByStartAsc(Long userId, Status status);
-
-    List<Booking> findBookingByItemIdAndBookerIdAndStatus(Long itemId, Long userId, Status status);
-
     List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Long userId, Status status);
 
     List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(Long userId, LocalDateTime start);
@@ -40,4 +35,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findTopByItemOwnerIdAndStatusAndStartBeforeOrderByEndDesc(Long ownerId, Status status, LocalDateTime start);
 
     Optional<Booking> findTopByItemOwnerIdAndStatusAndStartAfterOrderByStartAsc(Long ownerId, Status status, LocalDateTime start);
+
+    List<Booking> findBookingByItemIdAndBookerIdAndStatusAndEndBefore(Long itemId, Long userId, Status status, LocalDateTime end);
+
+    List<Booking> findBookingByItemIdOrderByStartAsc(Long itemId);
 }

@@ -29,7 +29,6 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,16 +70,15 @@ public class ItemServiceImpl implements ItemService {
         return items.stream()
                 .map(ItemMapper::toItemDtoWithDate)
                 .peek(itemDto -> {
-                    List<Booking> bookings = bookingRepository.findBookingByItemId(itemDto.getId());
-                    bookings.sort(Comparator.comparing(Booking::getStart));
-                    LocalDateTime currentDateTime = LocalDateTime.now();
+                    List<Booking> bookings = bookingRepository.findBookingByItemIdOrderByStartAsc(itemDto.getId());
+                    LocalDateTime now = LocalDateTime.now();
                     BookingRequestDto lastBooking = null;
                     BookingRequestDto nextBooking = null;
 
                     for (Booking booking : bookings) {
-                        if (booking.getEnd().isBefore(currentDateTime)) {
+                        if (booking.getEnd().isBefore(now)) {
                             lastBooking = BookingMapper.toBookingRequestDto(booking);
-                        } else if (booking.getStart().isAfter(currentDateTime)) {
+                        } else if (booking.getStart().isAfter(now)) {
                             nextBooking = BookingMapper.toBookingRequestDto(booking);
                             break;
                         }
@@ -173,9 +171,7 @@ public class ItemServiceImpl implements ItemService {
         if (existingComment != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already commented this item.");
         }
-        List<Booking> bookings = bookingRepository.findBookingByItemIdAndBookerIdAndStatus(itemId, userId, Status.APPROVED).stream()
-                .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
-                .collect(Collectors.toList());
+        List<Booking> bookings = bookingRepository.findBookingByItemIdAndBookerIdAndStatusAndEndBefore(itemId, userId, Status.APPROVED, LocalDateTime.now());
 
         if (bookings.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can't comment.");
