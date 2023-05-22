@@ -120,19 +120,13 @@ public class ItemServiceImpl implements ItemService {
         userService.findUserById(userId);
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException("Item not found."));
 
-        List<BookingRequestDto> bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartAsc(userId, Status.APPROVED).stream()
+        LocalDateTime now = LocalDateTime.now();
+        BookingRequestDto lastBooking = bookingRepository.findTopByItemOwnerIdAndStatusAndStartBeforeOrderByEndDesc(userId, Status.APPROVED, now)
                 .map(BookingMapper::toBookingRequestDto)
-                .collect(Collectors.toList());
-
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        BookingRequestDto lastBooking = bookings.stream()
-                .filter(booking -> booking.getStart().isBefore(currentDateTime))
-                .max(Comparator.comparing(BookingRequestDto::getEnd))
                 .orElse(null);
 
-        BookingRequestDto nextBooking = bookings.stream()
-                .filter(booking -> booking.getStart().isAfter(currentDateTime))
-                .findFirst()
+        BookingRequestDto nextBooking = bookingRepository.findTopByItemOwnerIdAndStatusAndStartAfterOrderByStartAsc(userId, Status.APPROVED, now)
+                .map(BookingMapper::toBookingRequestDto)
                 .orElse(null);
 
         List<CommentDto> comments = commentRepository.findAllByItemId(itemId).stream()
