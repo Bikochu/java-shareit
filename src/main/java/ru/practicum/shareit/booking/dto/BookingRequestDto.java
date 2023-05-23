@@ -5,28 +5,29 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.user.dto.UserDto;
 
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BookingDto {
+public class BookingRequestDto {
     Long id;
 
+    @NotNull(message = "Time can't be null")
+    @FutureOrPresent(message = "Time can't be in past")
     LocalDateTime start;
 
+    @NotNull(message = "Time can't be null")
+    @FutureOrPresent(message = "Time can't be in past")
     LocalDateTime end;
 
-    UserDto booker;
+    Long bookerId;
 
-    ItemDto item;
+    Long itemId;
 
     String status;
 }

@@ -4,19 +4,17 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Data
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItemDto {
+public class ItemDtoWithDate {
     Long id;
 
     @NotEmpty(message = "Item name can't be Empty")
@@ -31,6 +29,10 @@ public class ItemDto {
     UserDto owner;
 
     Long requestId;
+
+    BookingRequestDto lastBooking;
+
+    BookingRequestDto nextBooking;
 
     List<CommentDto> comments;
 
