@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.constraints.NotEmpty;
@@ -28,7 +29,7 @@ public class ItemDtoWithDate {
 
     UserDto owner;
 
-    Long requestId;
+    ItemRequestDto request;
 
     BookingRequestDto lastBooking;
 

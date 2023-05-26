@@ -12,13 +12,13 @@ public interface ItemService {
 
     ItemDto addItem(Long userId, ItemDto itemDto);
 
-    List<ItemDtoWithDate> getItemsByUser(Long userId);
+    List<ItemDtoWithDate> getItemsByUser(Long userId, Integer from, Integer size);
 
     ItemDtoWithDate findItemById(Long userId, Long itemId);
 
     ItemDto updateItem(Long userId, Long itemId, ItemDto itemDto);
 
-    List<ItemDto> searchItems(Long userId, String text);
+    List<ItemDto> searchItems(Long userId, String text, Integer from, Integer size);
 
     void removeItem(Long userId, Long itemId);
 
