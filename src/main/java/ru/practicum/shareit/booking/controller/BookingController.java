@@ -43,11 +43,6 @@ public class BookingController {
         return bookingService.findBookingById(userId, bookingId);
     }
 
-    @GetMapping("/owner/{ownerId}")
-    public List<BookingDto> getAllBookingByOwnerId(@PathVariable Long ownerId) {
-        return bookingService.getBookingByOwnerId(ownerId);
-    }
-
     @PostMapping
     public BookingDto addBooking(@Valid @RequestHeader(header) Long userId,
                                  @Valid @RequestBody BookingRequestDto bookingRequestDto) {

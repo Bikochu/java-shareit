@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundBookingException;
-import ru.practicum.shareit.exception.NotFoundItemException;
 import ru.practicum.shareit.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BookingServiceImpl implements BookingService {
 
+    @Autowired
+    Clock clock;
     BookingRepository bookingRepository;
     UserService userService;
     ItemService itemService;
@@ -42,7 +44,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getAllBookingsWithState(Long userId, String state, Integer from, Integer size) {
         userService.findUserById(userId);
-        LocalDateTime now = LocalDateTime.now(Clock.systemDefaultZone());
+        LocalDateTime now = LocalDateTime.now(clock);
         if (from != null && size != null) {
             if (from < 0 || size <= 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
@@ -121,7 +123,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getBookingByOwner(Long userId, String state, Integer from, Integer size) {
         userService.findUserById(userId);
-        LocalDateTime now = LocalDateTime.now(Clock.systemDefaultZone());
+        LocalDateTime now = LocalDateTime.now(clock);
         if (from != null && size != null) {
             if (from < 0 || size <= 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
@@ -198,25 +200,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getBookingByOwnerId(Long ownerId) {
-        return bookingRepository.findAllByItemOwnerIdOrderByStartAsc(ownerId).stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public BookingDto addBooking(Long userId, BookingRequestDto bookingRequestDto) {
         User booker = UserMapper.toUser(userService.findUserById(userId));
         Item item = itemService.findItem(bookingRequestDto.getItemId());
         if (!item.isAvailable()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Item is not available.");
         }
+        if (bookingRequestDto.getStart() == null || bookingRequestDto.getEnd() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Timestamps");
+        }
         if (bookingRequestDto.getStart().isAfter(bookingRequestDto.getEnd())
                 || bookingRequestDto.getEnd().isBefore(bookingRequestDto.getStart())
                 || bookingRequestDto.getStart().equals(bookingRequestDto.getEnd())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Timestamps");
-        }
-        if (bookingRequestDto.getStart() == null || bookingRequestDto.getEnd() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Timestamps");
         }
         if (item.getOwner().equals(booker)) {
@@ -240,14 +235,8 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getBooker().getId().equals(userId) || booking.getItem().getOwner().getId().equals(userId)) {
             return BookingMapper.toBookingDto(booking);
         } else {
-            throw new NotFoundItemException("Item not found.");
+            throw new NotFoundBookingException("Item not found.");
         }
-    }
-
-    @Override
-    public void removeBooking(Long userId, Long bookingId) {
-        findBookingById(userId, bookingId);
-        bookingRepository.deleteById(bookingId);
     }
 
     @Override

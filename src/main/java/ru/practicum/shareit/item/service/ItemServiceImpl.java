@@ -58,14 +58,6 @@ public class ItemServiceImpl implements ItemService {
     RequestRepository requestRepository;
 
     @Override
-    public List<ItemDto> getAllItems() {
-        return itemRepository.findAll()
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public ItemDto addItem(Long userId, ItemDto itemDto) {
         User owner = UserMapper.toUser(userService.findUserById(userId));
         itemDto.setOwner(UserMapper.toUserDto(owner));
@@ -215,12 +207,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void removeItem(Long userId, Long itemId) {
-        findItemById(userId, itemId);
-        itemRepository.deleteById(itemId);
-    }
-
-    @Override
     public Item findItem(Long itemId) {
         return itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException("Item not found."));
     }
@@ -243,12 +229,5 @@ public class ItemServiceImpl implements ItemService {
         commentDto.setCreated(LocalDateTime.now());
         Comment comment = commentRepository.save(CommentMapper.toComment(commentDto, UserMapper.toUser(author)));
         return CommentMapper.toCommentDto(comment);
-    }
-
-    @Override
-    public List<CommentDto> getAllComments() {
-        return commentRepository.findAll().stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
     }
 }

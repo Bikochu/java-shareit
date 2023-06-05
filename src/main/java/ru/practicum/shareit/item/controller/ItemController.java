@@ -21,11 +21,6 @@ public class ItemController {
     private final ItemService itemService;
     private static final String header = "X-Sharer-User-Id";
 
-    @GetMapping("/allItems")
-    public List<ItemDto> getAllItems() {
-        return itemService.getAllItems();
-    }
-
     @GetMapping
     public List<ItemDtoWithDate> getItemsByUser(@RequestHeader(header) Long userId,
                                                 @RequestParam(value = "from", required = false) Integer from,
@@ -65,10 +60,5 @@ public class ItemController {
                                  @PathVariable("itemId") Long itemId,
                                  @Valid @RequestBody CommentDto commentDto) {
         return itemService.addComment(userId, itemId, commentDto);
-    }
-
-    @GetMapping("/comments")
-    public List<CommentDto> getAllComments() {
-        return itemService.getAllComments();
     }
 }

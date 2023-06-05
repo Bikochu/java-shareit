@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,11 +16,9 @@ import java.time.LocalDateTime;
 public class BookingRequestDto {
     Long id;
 
-    @NotNull(message = "Time can't be null")
     @FutureOrPresent(message = "Time can't be in past")
     LocalDateTime start;
 
-    @NotNull(message = "Time can't be null")
     @FutureOrPresent(message = "Time can't be in past")
     LocalDateTime end;
 
