@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(Long userId, UserDto userDto) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException(String.format("User %s not found", userId)));
         String name = userDto.getName();
         String email = userDto.getEmail();
         user.setName(name != null && !name.isBlank() ? name : user.getName());
@@ -62,13 +62,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findUserById(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException(String.format("User %s not found", userId)));
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public void deleteUser(Long userId) {
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException("User not found"));
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException(String.format("User %s not found", userId)));
         userRepository.deleteById(userId);
     }
 }

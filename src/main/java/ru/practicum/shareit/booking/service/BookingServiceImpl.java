@@ -26,6 +26,7 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,80 +42,52 @@ public class BookingServiceImpl implements BookingService {
     UserService userService;
     ItemService itemService;
 
-    @Override
-    public List<BookingDto> getAllBookingsWithState(Long userId, String state, Integer from, Integer size) {
-        userService.findUserById(userId);
-        LocalDateTime now = LocalDateTime.now(clock);
+    private Pageable createPageable(Integer from, Integer size) {
         if (from != null && size != null) {
             if (from < 0 || size <= 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
             }
             int pageNumber = (int) Math.ceil((double) from / size);
-            Pageable pageable = PageRequest.of(pageNumber, size);
-
-            switch (state) {
-                case "WAITING":
-                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "CURRENT":
-                    return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByIdAsc(userId, now, now, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "REJECTED":
-                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "CANCELED":
-                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.CANCELED, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "FUTURE":
-                    return bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "PAST":
-                    return bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "UNSUPPORTED_STATUS":
-                    throw new UnsupportedStateException("Unknown state: " + state);
-                default:
-                    return bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-            }
+            return PageRequest.of(pageNumber, size);
         }
+        return Pageable.unpaged();
+    }
+
+    @Override
+    public List<BookingDto> getAllBookingsWithState(Long userId, String state, Integer from, Integer size) {
+        userService.findUserById(userId);
+        LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneId.systemDefault()));
+        Pageable pageable = createPageable(from, size);
 
         switch (state) {
             case "WAITING":
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING).stream()
+                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "CURRENT":
-                return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByIdAsc(userId, now, now).stream()
+                return bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByIdAsc(userId, now, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "REJECTED":
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED).stream()
+                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "CANCELED":
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.CANCELED).stream()
+                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.CANCELED, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "FUTURE":
-                return bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now).stream()
+                return bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "PAST":
-                return bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now).stream()
+                return bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "UNSUPPORTED_STATUS":
                 throw new UnsupportedStateException("Unknown state: " + state);
             default:
-                return bookingRepository.findAllByBookerIdOrderByStartDesc(userId).stream()
+                return bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
         }
@@ -123,77 +96,38 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getBookingByOwner(Long userId, String state, Integer from, Integer size) {
         userService.findUserById(userId);
-        LocalDateTime now = LocalDateTime.now(clock);
-        if (from != null && size != null) {
-            if (from < 0 || size <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
-            }
-            int pageNumber = (int) Math.ceil((double) from / size);
-            Pageable pageable = PageRequest.of(pageNumber, size);
-
-            switch (state) {
-                case "WAITING":
-                    return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "CURRENT":
-                    return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByIdAsc(userId, now, now, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "REJECTED":
-                    return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "CANCELED":
-                    return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.CANCELED, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "FUTURE":
-                    return bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "PAST":
-                    return bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-                case "UNSUPPORTED_STATUS":
-                    throw new UnsupportedStateException("Unknown state: " + state);
-                default:
-                    return bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageable).stream()
-                            .map(BookingMapper::toBookingDto)
-                            .collect(Collectors.toList());
-            }
-        }
+        LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneId.systemDefault()));
+        Pageable pageable = createPageable(from, size);
 
         switch (state) {
             case "WAITING":
-                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING).stream()
+                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "CURRENT":
-                return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByIdAsc(userId, now, now).stream()
+                return bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByIdAsc(userId, now, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "REJECTED":
-                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED).stream()
+                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "CANCELED":
-                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.CANCELED).stream()
+                return bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.CANCELED, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "FUTURE":
-                return bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now).stream()
+                return bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "PAST":
-                return bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now).stream()
+                return bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
             case "UNSUPPORTED_STATUS":
                 throw new UnsupportedStateException("Unknown state: " + state);
             default:
-                return bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId).stream()
+                return bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
         }
@@ -231,18 +165,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto findBookingById(Long userId, Long bookingId) {
         userService.findUserById(userId);
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundBookingException("Booking not found."));
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundBookingException(String.format("Booking %s not found.", bookingId)));
         if (booking.getBooker().getId().equals(userId) || booking.getItem().getOwner().getId().equals(userId)) {
             return BookingMapper.toBookingDto(booking);
         } else {
-            throw new NotFoundBookingException("Item not found.");
+            throw new NotFoundBookingException(String.format("Booking %s not found.", bookingId));
         }
     }
 
     @Override
     public BookingDto bookingApprove(Long ownerId, Long bookingId, boolean approved) {
         userService.findUserById(ownerId);
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundBookingException("Booking not found."));
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundBookingException(String.format("Booking %s not found.", bookingId)));
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "You are not owner!");
         }

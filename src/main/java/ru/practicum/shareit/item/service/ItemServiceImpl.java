@@ -65,7 +65,8 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getRequestId() != null) {
             ItemRequestDto requestDto = requestService.findItemRequestById(userId, itemDto.getRequestId());
             itemDto.setRequestId(requestDto.getId());
-            request = requestRepository.findById(itemDto.getRequestId()).orElseThrow(() -> new RequestNotFoundException("Request not found."));
+            request = requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new RequestNotFoundException(String.format("Request %s not found.", itemDto.getRequestId())));
         }
         Item item = ItemMapper.toItem(itemDto);
         item.setRequest(request);
@@ -133,9 +134,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(Long userId, Long itemId, ItemDto itemDto) {
         User owner = UserMapper.toUser(userService.findUserById(userId));
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException("Item not found."));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException(String.format("Item %s not found.", itemId)));
         if (!item.getOwner().equals(owner)) {
-            throw new NotFoundItemException("Item not found.");
+            throw new NotFoundItemException(String.format("Item %s not found.", itemId));
         }
         String name = itemDto.getName();
         String description = itemDto.getDescription();
@@ -156,7 +157,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDtoWithDate findItemById(Long userId, Long itemId) {
         userService.findUserById(userId);
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException("Item not found."));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException(String.format("Item %s not found.", itemId)));
 
         LocalDateTime now = LocalDateTime.now();
         BookingRequestDto lastBooking = bookingRepository.findTopByItemOwnerIdAndStatusAndStartBeforeOrderByEndDesc(userId, Status.APPROVED, now)
@@ -208,7 +209,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item findItem(Long itemId) {
-        return itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException("Item not found."));
+        return itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException(String.format("Item %s not found.", itemId)));
     }
 
     @Override

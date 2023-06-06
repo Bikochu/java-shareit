@@ -96,7 +96,8 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public ItemRequestDto findItemRequestById(Long userId, Long requestId) {
         userService.findUserById(userId);
-        ItemRequestDto itemRequestDto = RequestMapper.toItemRequestDto(requestRepository.findById(requestId).orElseThrow(() -> new RequestNotFoundException("Request not found.")));
+        ItemRequestDto itemRequestDto = RequestMapper.toItemRequestDto(requestRepository.findById(requestId)
+                .orElseThrow(() -> new RequestNotFoundException(String.format("Request %s not found.", requestId))));
         List<ItemDto> listItemDto = itemRepository.findAllByRequestId(requestId).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

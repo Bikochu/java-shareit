@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 class ErrorHandlerTest {
     private ErrorHandler errorHandler;
@@ -50,10 +49,10 @@ class ErrorHandlerTest {
 
     @Test
     public void notFoundBookingException_HasResponseStatusNotFound() {
-        ResponseStatus responseStatus = NotFoundBookingException.class.getAnnotation(ResponseStatus.class);
+        NotFoundBookingException ex = new NotFoundBookingException("Booking not found");
+        ResponseEntity<ErrorResponse> responseEntity = errorHandler.handleNotFoundBookingException(ex);
 
-        Assertions.assertNotNull(responseStatus);
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseStatus.value());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
     @Test
@@ -66,10 +65,10 @@ class ErrorHandlerTest {
 
     @Test
     public void notFoundItemException_HasResponseStatusNotFound() {
-        ResponseStatus responseStatus = NotFoundItemException.class.getAnnotation(ResponseStatus.class);
+        NotFoundItemException ex = new NotFoundItemException("Item not found");
+        ResponseEntity<ErrorResponse> responseEntity = errorHandler.handleNotFoundItemException(ex);
 
-        Assertions.assertNotNull(responseStatus);
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseStatus.value());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
     @Test
@@ -82,10 +81,10 @@ class ErrorHandlerTest {
 
     @Test
     public void notFoundUserException_HasResponseStatusNotFound() {
-        ResponseStatus responseStatus = NotFoundUserException.class.getAnnotation(ResponseStatus.class);
+        NotFoundUserException ex = new NotFoundUserException("Item not found");
+        ResponseEntity<ErrorResponse> responseEntity = errorHandler.handleNotFoundUserException(ex);
 
-        Assertions.assertNotNull(responseStatus);
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseStatus.value());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
     @Test
@@ -98,10 +97,10 @@ class ErrorHandlerTest {
 
     @Test
     public void requestNotFoundException_HasResponseStatusNotFound() {
-        ResponseStatus responseStatus = RequestNotFoundException.class.getAnnotation(ResponseStatus.class);
+        RequestNotFoundException ex = new RequestNotFoundException("Item not found");
+        ResponseEntity<ErrorResponse> responseEntity = errorHandler.handleRequestNotFoundException(ex);
 
-        Assertions.assertNotNull(responseStatus);
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseStatus.value());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
     @Test
