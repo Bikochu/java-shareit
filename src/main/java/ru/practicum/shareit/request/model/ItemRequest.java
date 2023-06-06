@@ -3,11 +3,12 @@ package ru.practicum.shareit.request.model;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * TODO Sprint add-item-requests.
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 @Table(name = "requests")
 @Data
 @AllArgsConstructor
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ItemRequest {
 
@@ -31,5 +33,5 @@ public class ItemRequest {
     User requester;
 
     @Column(nullable = false)
-    final LocalDate created = LocalDate.now();
+    LocalDateTime created;
 }

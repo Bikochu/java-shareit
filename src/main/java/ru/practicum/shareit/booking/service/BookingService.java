@@ -9,15 +9,11 @@ public interface BookingService {
 
     BookingDto addBooking(Long userId, BookingRequestDto bookingRequestDto);
 
-    List<BookingDto> getBookingByOwner(Long userId, String state);
+    List<BookingDto> getBookingByOwner(Long userId, String state, Integer from, Integer size);
 
     BookingDto findBookingById(Long userId, Long bookingId);
 
-    void removeBooking(Long userId, Long bookingId);
-
     BookingDto bookingApprove(Long ownerId, Long bookingId, boolean approved);
 
-    List<BookingDto> getAllBookingsWithState(Long userId, String state);
-
-    List<BookingDto> getBookingByOwnerId(Long ownerId);
+    List<BookingDto> getAllBookingsWithState(Long userId, String state, Integer from, Integer size);
 }
