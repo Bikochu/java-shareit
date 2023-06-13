@@ -10,19 +10,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.practicum.shareit.exception.NotFoundBookingException;
-import ru.practicum.shareit.exception.UnsupportedStateException;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.mapper.UserMapper;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.NotFoundBookingException;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -42,22 +41,12 @@ public class BookingServiceImpl implements BookingService {
     UserService userService;
     ItemService itemService;
 
-    private Pageable createPageable(Integer from, Integer size) {
-        if (from != null && size != null) {
-            if (from < 0 || size <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
-            }
-            int pageNumber = (int) Math.ceil((double) from / size);
-            return PageRequest.of(pageNumber, size);
-        }
-        return Pageable.unpaged();
-    }
-
     @Override
     public List<BookingDto> getAllBookingsWithState(Long userId, String state, Integer from, Integer size) {
         userService.findUserById(userId);
         LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneId.systemDefault()));
-        Pageable pageable = createPageable(from, size);
+        int pageNumber = (int) Math.ceil((double) from / size);
+        Pageable pageable = PageRequest.of(pageNumber, size);
 
         switch (state) {
             case "WAITING":
@@ -84,8 +73,6 @@ public class BookingServiceImpl implements BookingService {
                 return bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "UNSUPPORTED_STATUS":
-                throw new UnsupportedStateException("Unknown state: " + state);
             default:
                 return bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable).stream()
                         .map(BookingMapper::toBookingDto)
@@ -97,7 +84,8 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getBookingByOwner(Long userId, String state, Integer from, Integer size) {
         userService.findUserById(userId);
         LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneId.systemDefault()));
-        Pageable pageable = createPageable(from, size);
+        int pageNumber = (int) Math.ceil((double) from / size);
+        Pageable pageable = PageRequest.of(pageNumber, size);
 
         switch (state) {
             case "WAITING":
@@ -124,8 +112,6 @@ public class BookingServiceImpl implements BookingService {
                 return bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now, pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "UNSUPPORTED_STATUS":
-                throw new UnsupportedStateException("Unknown state: " + state);
             default:
                 return bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageable).stream()
                         .map(BookingMapper::toBookingDto)

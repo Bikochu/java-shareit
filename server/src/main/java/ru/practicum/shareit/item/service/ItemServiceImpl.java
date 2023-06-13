@@ -9,6 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.NotFoundItemException;
 import ru.practicum.shareit.exception.RequestNotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -17,25 +23,18 @@ import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.service.RequestService;
-import ru.practicum.shareit.booking.dto.BookingRequestDto;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.NotFoundItemException;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.RequestRepository;
+import ru.practicum.shareit.request.service.RequestService;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,37 +77,10 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDtoWithDate> getItemsByUser(Long userId, Integer from, Integer size) {
         User owner = UserMapper.toUser(userService.findUserById(userId));
 
-        if (from != null && size != null) {
-            if (from < 0 || size <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
-            }
-            int pageNumber = (int) Math.ceil((double) from / size);
-            Pageable pageable = PageRequest.of(pageNumber, size);
+        int pageNumber = (int) Math.ceil((double) from / size);
+        Pageable pageable = PageRequest.of(pageNumber, size);
 
-            return itemRepository.findByOwner(owner, pageable).stream()
-                    .map(ItemMapper::toItemDtoWithDate)
-                    .peek(itemDto -> {
-                        List<Booking> bookings = bookingRepository.findBookingByItemIdOrderByStartAsc(itemDto.getId());
-                        LocalDateTime now = LocalDateTime.now();
-                        BookingRequestDto lastBooking = null;
-                        BookingRequestDto nextBooking = null;
-
-                        for (Booking booking : bookings) {
-                            if (booking.getEnd().isBefore(now)) {
-                                lastBooking = BookingMapper.toBookingRequestDto(booking);
-                            } else if (booking.getStart().isAfter(now)) {
-                                nextBooking = BookingMapper.toBookingRequestDto(booking);
-                                break;
-                            }
-                        }
-
-                        itemDto.setLastBooking(lastBooking);
-                        itemDto.setNextBooking(nextBooking);
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        return itemRepository.findByOwner(owner).stream()
+        return itemRepository.findByOwner(owner, pageable).stream()
                 .map(ItemMapper::toItemDtoWithDate)
                 .peek(itemDto -> {
                     List<Booking> bookings = bookingRepository.findBookingByItemIdOrderByStartAsc(itemDto.getId());
@@ -128,7 +100,7 @@ public class ItemServiceImpl implements ItemService {
                     itemDto.setLastBooking(lastBooking);
                     itemDto.setNextBooking(nextBooking);
                 })
-                .collect(Collectors.toList());
+                    .collect(Collectors.toList());
     }
 
     @Override
@@ -183,24 +155,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> searchItems(Long userId, String text, Integer from, Integer size) {
         userService.findUserById(userId);
-        if (text == null || text.isBlank()) {
-            return new ArrayList<>();
-        }
-        if (from != null && size != null) {
-            if (from < 0 || size <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
-            }
-            int pageNumber = (int) Math.ceil((double) from / size);
-            Pageable pageable = PageRequest.of(pageNumber, size);
 
-            return itemRepository.searchItems(text, pageable)
-                    .stream()
-                    .filter(Item::isAvailable)
-                    .map(ItemMapper::toItemDto)
-                    .collect(Collectors.toList());
-        }
+        int pageNumber = (int) Math.ceil((double) from / size);
+        Pageable pageable = PageRequest.of(pageNumber, size);
 
-        return itemRepository.searchItems(text)
+        return itemRepository.searchItems(text, pageable)
                 .stream()
                 .filter(Item::isAvailable)
                 .map(ItemMapper::toItemDto)

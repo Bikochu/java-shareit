@@ -9,13 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.exception.RequestNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.RequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.exception.RequestNotFoundException;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.repository.RequestRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
@@ -66,23 +66,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<ItemRequestDto> getAllOthersRequests(Long userId, Integer from, Integer size) {
-        if (from != null && size != null) {
-            if (from < 0 || size <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong request.");
-            }
-            int pageNumber = (int) Math.ceil((double) from / size);
-            Pageable pageable = PageRequest.of(pageNumber, size);
-            return requestRepository.findByRequesterIdNot(userId, pageable).stream()
-                    .map(RequestMapper::toItemRequestDto)
-                    .peek(request -> {
-                        List<ItemDto> items = itemRepository.findAllByRequestId(request.getId()).stream()
-                                .map(ItemMapper::toItemDto)
-                                .collect(Collectors.toList());
-                        request.setItems(items);
-                    })
-                    .collect(Collectors.toList());
-        }
-        return requestRepository.findByRequesterIdNot(userId).stream()
+        int pageNumber = (int) Math.ceil((double) from / size);
+        Pageable pageable = PageRequest.of(pageNumber, size);
+
+        return requestRepository.findByRequesterIdNot(userId, pageable).stream()
                 .map(RequestMapper::toItemRequestDto)
                 .peek(request -> {
                     List<ItemDto> items = itemRepository.findAllByRequestId(request.getId()).stream()

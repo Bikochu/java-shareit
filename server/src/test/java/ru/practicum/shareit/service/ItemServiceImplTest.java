@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -44,7 +43,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -133,20 +133,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getItemsByUser_WithPages_ErrorResponse() {
-        Long userId = 1L;
-        Integer from = 0;
-        Integer size = 0;
-
-        User owner = new User();
-        owner.setId(userId);
-        UserDto ownerDto = UserMapper.toUserDto(owner);
-        when(userService.findUserById(userId)).thenReturn(ownerDto);
-
-        assertThrows(ResponseStatusException.class, () -> itemService.getItemsByUser(userId, from, size));
-    }
-
-    @Test
     void getItemsByUser_WithPages() {
         //Создаем сущности.
         Long userId = 1L;
@@ -172,26 +158,6 @@ class ItemServiceImplTest {
         assertEquals(items.size(), result.size());
         assertEquals(itemDtoWithDatesList, result);
         verify(itemRepository, times(1)).findByOwner(owner, PageRequest.of(0, 10));
-    }
-
-    @Test
-    void getItemsByUser_WithoutPages() {
-        //Создаем сущности.
-        Long userId = 1L;
-        User owner = new User();
-        UserDto ownerDto = new UserDto();
-        when(userService.findUserById(userId)).thenReturn(ownerDto);
-        List<Item> items = new ArrayList<>();
-        items.add(new Item(1L, "Fork", "Kitchen thing", true, owner, null));
-        when(itemRepository.findByOwner(owner)).thenReturn(items);
-
-        //Тестируем.
-        List<ItemDtoWithDate> result = itemService.getItemsByUser(userId, null, null);
-
-        //Проверяем.
-        assertEquals(items.size(), result.size());
-        assertEquals(items.stream().map(ItemMapper::toItemDtoWithDate).collect(Collectors.toList()), result);
-        verify(itemRepository, times(1)).findByOwner(owner);
     }
 
     @Test
@@ -248,36 +214,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void searchItems_WithPages_ErrorResponse() {
-        Long userId = 1L;
-        String text = "";
-        Integer from = 0;
-        Integer size = 10;
-        User user = new User();
-        user.setId(userId);
-        UserDto userDto = UserMapper.toUserDto(user);
-        when(userService.findUserById(userId)).thenReturn(userDto);
-
-        List<ItemDto> result = itemService.searchItems(userId, text, from, size);
-
-        assertEquals(new ArrayList<>(), result);
-    }
-
-    @Test
-    void searchItems_WithPages_PageNull() {
-        Long userId = 1L;
-        String text = "search";
-        Integer from = 0;
-        Integer size = 0;
-        User user = new User();
-        user.setId(userId);
-        UserDto userDto = UserMapper.toUserDto(user);
-        when(userService.findUserById(userId)).thenReturn(userDto);
-
-        assertThrows(ResponseStatusException.class, () -> itemService.searchItems(userId, text, from, size));
-    }
-
-    @Test
     void searchItems_WithPages() {
         // Создаем сущности.
         Long userId = 1L;
@@ -303,31 +239,6 @@ class ItemServiceImplTest {
         assertEquals(items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList()), result);
         verify(userService, times(1)).findUserById(userId);
         verify(itemRepository, times(1)).searchItems(text, PageRequest.of(0, 10));
-    }
-
-    @Test
-    void searchItems_WithoutPages() {
-        // Создаем сущность.
-        Long userId = 1L;
-        String text = "search";
-        User user = new User();
-        user.setId(userId);
-        UserDto userDto = UserMapper.toUserDto(user);
-        List<Item> items = new ArrayList<>();
-        items.add(new Item(1L, "Fork", "Kitchen thing", true, user, null));
-
-        when(userService.findUserById(userId)).thenReturn(userDto);
-        when(itemRepository.searchItems(text)).thenReturn(items);
-
-        //Тестируем.
-        List<ItemDto> result = itemService.searchItems(userId, text, null, null);
-
-        //Проверяем.
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList()), result);
-        verify(userService, times(1)).findUserById(userId);
-        verify(itemRepository, times(1)).searchItems(text);
     }
 
     @Test

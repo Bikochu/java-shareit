@@ -21,7 +21,6 @@ import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.exception.NotFoundBookingException;
-import ru.practicum.shareit.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -271,35 +270,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getAllBookingsWithState_WithPages_StateUnsupportedState() {
-        //Создаем сущность.
-        Long userId = 1L;
-        String state = "UNSUPPORTED_STATUS";
-
-        //Тестируем и проверяем.
-        assertThrows(UnsupportedStateException.class, () -> bookingService.getAllBookingsWithState(userId, state, 0, 10));
-    }
-
-    @Test
-    void getAllBookingsWithState_WithoutPages_StateUnsupportedState() {
-        //Создаем сущность.
-        Long userId = 1L;
-        String state = "UNSUPPORTED_STATUS";
-        Integer from = null;
-        Integer size = null;
-
-        //Тестируем и проверяем.
-        assertThrows(UnsupportedStateException.class, () -> bookingService.getAllBookingsWithState(userId, state, from, size));
-    }
-
-    @Test
-    void getAllBookingsWithState_ReturnException() {
-        Long userId = 1L;
-        String state = "ALL";
-        assertThrows(ResponseStatusException.class, () -> bookingService.getAllBookingsWithState(userId, state, 0, 0));
-    }
-
-    @Test
     void getBookingByOwner_WithPages_StateAll() {
         //Создаем сущность.
         LocalDateTime now = LocalDateTime.now(clock);
@@ -515,37 +485,6 @@ class BookingServiceImplTest {
         assertEquals(bookingDtoList, result);
         verify(bookingRepository, times(1)).findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now, PageRequest.of(0, 10));
         verifyNoMoreInteractions(bookingRepository);
-    }
-
-    @Test
-    void getBookingByOwner_WithPages_StateUnsupportedState() {
-        //Создаем сущность.
-        Long userId = 1L;
-        String state = "UNSUPPORTED_STATUS";
-        Integer from = 0;
-        Integer size = 10;
-
-        //Тестируем и проверяем.
-        assertThrows(UnsupportedStateException.class, () -> bookingService.getBookingByOwner(userId, state, from, size));
-    }
-
-    @Test
-    void getBookingByOwner_ReturnException() {
-        Long userId = 1L;
-        String state = "ALL";
-        assertThrows(ResponseStatusException.class, () -> bookingService.getBookingByOwner(userId, state, 0, 0));
-    }
-
-    @Test
-    void getBookingByOwner_WithoutPages_StateUnsupportedState() {
-        //Создаем сущность.
-        Long userId = 1L;
-        String state = "UNSUPPORTED_STATUS";
-        Integer from = null;
-        Integer size = null;
-
-        //Тестируем и проверяем.
-        assertThrows(UnsupportedStateException.class, () -> bookingService.getBookingByOwner(userId, state, from, size));
     }
 
     @Test

@@ -139,38 +139,6 @@ class RequestServiceImplTest {
     }
 
     @Test
-    void getAllOthersRequests_WithoutPages() {
-        //Создаем сущность.
-        LocalDateTime now = LocalDateTime.now(Clock.systemDefaultZone());
-        Long userId = 1L;
-        User requester = new User();
-        ItemRequest itemRequest = new ItemRequest(1L, "Need item for eat.", requester, now);
-        List<ItemRequest> itemRequests = new ArrayList<>();
-        itemRequests.add(itemRequest);
-        List<ItemRequest> itemRequestList = new ArrayList<>(itemRequests); // Пустая страница с пустым списком
-
-        List<ItemRequestDto> itemRequestDtoList = itemRequestList.stream().map(RequestMapper::toItemRequestDto).collect(Collectors.toList());
-
-        when(requestRepository.findByRequesterIdNot(userId))
-                .thenReturn(itemRequestList);
-
-        //Тестируем.
-        List<ItemRequestDto> result = requestService.getAllOthersRequests(userId, null, null);
-
-        //Проверяем.
-        assertEquals(itemRequestDtoList, result);
-        verify(itemRepository, times(1)).findAllByRequestId(anyLong());
-    }
-
-    @Test
-    void getAllOthersRequests_WithError() {
-        Long userId = 1L;
-
-        //Тестируем и проверяем.
-        assertThrows(ResponseStatusException.class, () -> requestService.getAllOthersRequests(userId, 0, 0));
-    }
-
-    @Test
     void findItemRequestById() {
         //Создаем сущность.
         LocalDateTime now = LocalDateTime.now(Clock.systemDefaultZone());
