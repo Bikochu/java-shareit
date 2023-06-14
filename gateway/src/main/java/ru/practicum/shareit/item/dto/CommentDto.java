@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,7 +17,7 @@ public class CommentDto {
 
     Long id;
 
-    @NotEmpty(message = "Text can't be Empty.")
+    @NotBlank(message = "Text can't be Blank.")
     String text;
 
     ItemDto itemDto;

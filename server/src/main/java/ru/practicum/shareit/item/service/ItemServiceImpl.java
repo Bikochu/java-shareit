@@ -5,15 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundItemException;
 import ru.practicum.shareit.exception.RequestNotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -35,6 +34,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,7 +100,8 @@ public class ItemServiceImpl implements ItemService {
                     itemDto.setLastBooking(lastBooking);
                     itemDto.setNextBooking(nextBooking);
                 })
-                    .collect(Collectors.toList());
+                .sorted(Comparator.comparing(ItemDtoWithDate::getId))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -177,12 +178,12 @@ public class ItemServiceImpl implements ItemService {
         ItemDto item = ItemMapper.toItemDto(findItem(itemId));
         Comment existingComment = commentRepository.findByAuthorIdAndItemId(userId, itemId);
         if (existingComment != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already commented this item.");
+            throw new BadRequestException("You already commented this item.");
         }
         List<Booking> bookings = bookingRepository.findBookingByItemIdAndBookerIdAndStatusAndEndBefore(itemId, userId, Status.APPROVED, LocalDateTime.now());
 
         if (bookings.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can't comment.");
+            throw new BadRequestException("You can't comment.");
         }
         commentDto.setItemDto(item);
         commentDto.setAuthorName(author.getName());
