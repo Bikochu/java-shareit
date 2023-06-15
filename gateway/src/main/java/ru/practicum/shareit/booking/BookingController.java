@@ -26,10 +26,12 @@ public class BookingController {
 	private final BookingClient bookingClient;
 
 	@GetMapping
-	public ResponseEntity<Object> getAllBookingsWithState(@RequestHeader(header) long userId,
-														  @RequestParam(name = "state", defaultValue = "all") String stateParam,
-														  @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-														  @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
+	public ResponseEntity<Object> getAllBookingsWithState(
+			@RequestHeader(header) long userId,
+			@RequestParam(name = "state", defaultValue = "all") String stateParam,
+			@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+			@Positive @RequestParam(name = "size", defaultValue = "10") Integer size
+	) {
 		BookingState state = BookingState.from(stateParam)
 				.orElseThrow(() -> new UnsupportedStateException("Unknown state: " + stateParam));
 		log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
@@ -37,10 +39,12 @@ public class BookingController {
 	}
 
 	@GetMapping("/owner")
-	public ResponseEntity<Object> getAllBookingByOwner(@RequestHeader(header) long userId,
-													   @RequestParam(name = "state", defaultValue = "all") String stateParam,
-													   @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-													   @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
+	public ResponseEntity<Object> getAllBookingByOwner(
+			@RequestHeader(header) long userId,
+			@RequestParam(name = "state", defaultValue = "all") String stateParam,
+			@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+			@Positive @RequestParam(name = "size", defaultValue = "10") Integer size
+	) {
 		BookingState state = BookingState.from(stateParam)
 				.orElseThrow(() -> new UnsupportedStateException("Unknown state: " + stateParam));
 		log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);

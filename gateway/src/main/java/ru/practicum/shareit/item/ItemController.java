@@ -28,23 +28,29 @@ public class ItemController {
     private final ItemClient itemClient;
 
     @GetMapping
-    public ResponseEntity<Object> getItemsByUser(@RequestHeader(header) Long userId,
-                                                 @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
-                                                 @Positive @RequestParam(value = "size", defaultValue = "10") Integer size) {
+    public ResponseEntity<Object> getItemsByUser(
+            @RequestHeader(header) Long userId,
+            @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
+            @Positive @RequestParam(value = "size", defaultValue = "10") Integer size
+    ) {
         return itemClient.getItemsByUser(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<Object> findItemById(@RequestHeader(header) Long userId,
-                                               @PathVariable("itemId") Long itemId) {
+    public ResponseEntity<Object> findItemById(
+            @RequestHeader(header) Long userId,
+            @PathVariable("itemId") Long itemId
+    ) {
         return itemClient.findItemById(userId, itemId);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> searchItems(@RequestHeader(header) Long userId,
-                                              @RequestParam String text,
-                                              @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
-                                              @Positive @RequestParam(value = "size", defaultValue = "10") Integer size) {
+    public ResponseEntity<Object> searchItems(
+            @RequestHeader(header) Long userId,
+            @RequestParam String text,
+            @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
+            @Positive @RequestParam(value = "size", defaultValue = "10") Integer size
+    ) {
         if (text == null || text.isBlank()) {
             return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
         }
@@ -52,22 +58,28 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> addItem(@RequestHeader(header) @NotNull Long userId,
-                                          @RequestBody @Valid ItemDto itemDto) {
+    public ResponseEntity<Object> addItem(
+            @RequestHeader(header) @NotNull Long userId,
+            @RequestBody @Valid ItemDto itemDto
+    ) {
         return itemClient.addItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> updateItem(@RequestHeader(header) Long userId,
-                                             @PathVariable("itemId") Long itemId,
-                                             @RequestBody ItemDto itemDto) {
+    public ResponseEntity<Object> updateItem(
+            @RequestHeader(header) Long userId,
+            @PathVariable("itemId") Long itemId,
+            @RequestBody ItemDto itemDto
+    ) {
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> addComment(@RequestHeader(header) Long userId,
-                                             @PathVariable("itemId") Long itemId,
-                                             @RequestBody @Valid CommentDto commentDto) {
+    public ResponseEntity<Object> addComment(
+            @RequestHeader(header) Long userId,
+            @PathVariable("itemId") Long itemId,
+            @RequestBody @Valid CommentDto commentDto
+    ) {
         return itemClient.addComment(userId, itemId, commentDto);
     }
 }

@@ -30,21 +30,27 @@ public class RequestController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Object> getAllOthersRequests(@RequestHeader(header) Long userId,
-                                                       @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
-                                                       @Positive @RequestParam(value = "size", defaultValue = "10") Integer size) {
+    public ResponseEntity<Object> getAllOthersRequests(
+            @RequestHeader(header) Long userId,
+            @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
+            @Positive @RequestParam(value = "size", defaultValue = "10") Integer size
+    ) {
         return requestClient.getAllOthersRequests(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    public ResponseEntity<Object> getRequest(@RequestHeader(header) Long userId,
-                                             @PathVariable @NotNull Long requestId) {
+    public ResponseEntity<Object> getRequest(
+            @RequestHeader(header) Long userId,
+            @PathVariable @NotNull Long requestId
+    ) {
         return requestClient.getRequest(userId, requestId);
     }
 
     @PostMapping
-    public ResponseEntity<Object> addRequest(@RequestHeader(header) Long userId,
-                                             @RequestBody @Valid ItemRequestDto itemRequestDto) {
+    public ResponseEntity<Object> addRequest(
+            @RequestHeader(header) Long userId,
+            @RequestBody @Valid ItemRequestDto itemRequestDto
+    ) {
         log.info("Creating request {}, userId={}", itemRequestDto, userId);
         return requestClient.addRequest(userId, itemRequestDto);
     }
