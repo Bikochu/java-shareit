@@ -31,3 +31,7 @@ services:
     container_name: db-container
     ports:
       - "6541:5432"
+    environment:
+      - POSTGRES_DB=shareit
+      - POSTGRES_USER=ivan
+      - POSTGRES_PASSWORD=anypass
