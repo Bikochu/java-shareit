@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,9 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +46,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ItemServiceImpl implements ItemService {
+
+    @Autowired
+    Clock clock;
 
     UserService userService;
 
@@ -84,7 +90,7 @@ public class ItemServiceImpl implements ItemService {
                 .map(ItemMapper::toItemDtoWithDate)
                 .peek(itemDto -> {
                     List<Booking> bookings = bookingRepository.findBookingByItemIdOrderByStartAsc(itemDto.getId());
-                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneId.systemDefault()));
                     BookingRequestDto lastBooking = null;
                     BookingRequestDto nextBooking = null;
 
@@ -132,7 +138,7 @@ public class ItemServiceImpl implements ItemService {
         userService.findUserById(userId);
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundItemException(String.format("Item %s not found.", itemId)));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneId.systemDefault()));
         BookingRequestDto lastBooking = bookingRepository.findTopByItemOwnerIdAndStatusAndStartBeforeOrderByEndDesc(userId, Status.APPROVED, now)
                 .map(BookingMapper::toBookingRequestDto)
                 .orElse(null);

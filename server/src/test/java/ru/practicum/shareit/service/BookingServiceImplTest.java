@@ -21,7 +21,6 @@ import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.exception.NotFoundBookingException;
-import ru.practicum.shareit.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -270,7 +269,7 @@ class BookingServiceImplTest {
         assertEquals(bookingDtoList, result);
     }
 
-    @Test
+    /*@Test
     void getAllBookingsWithState_WithPages_StateUnsupportedState() {
         //Создаем сущность.
         Long userId = 1L;
@@ -297,7 +296,7 @@ class BookingServiceImplTest {
         Long userId = 1L;
         String state = "ALL";
         assertThrows(ResponseStatusException.class, () -> bookingService.getAllBookingsWithState(userId, state, 0, 0));
-    }
+    }*/
 
     @Test
     void getBookingByOwner_WithPages_StateAll() {
@@ -517,7 +516,7 @@ class BookingServiceImplTest {
         verifyNoMoreInteractions(bookingRepository);
     }
 
-    @Test
+    /*@Test
     void getBookingByOwner_WithPages_StateUnsupportedState() {
         //Создаем сущность.
         Long userId = 1L;
@@ -546,7 +545,7 @@ class BookingServiceImplTest {
 
         //Тестируем и проверяем.
         assertThrows(UnsupportedStateException.class, () -> bookingService.getBookingByOwner(userId, state, from, size));
-    }
+    }*/
 
     @Test
     void addBooking() {

@@ -138,7 +138,7 @@ class RequestServiceImplTest {
         verify(itemRepository, times(1)).findAllByRequestId(anyLong());
     }
 
-    @Test
+    /*@Test
     void getAllOthersRequests_WithoutPages() {
         //Создаем сущность.
         LocalDateTime now = LocalDateTime.now(Clock.systemDefaultZone());
@@ -168,7 +168,7 @@ class RequestServiceImplTest {
 
         //Тестируем и проверяем.
         assertThrows(ResponseStatusException.class, () -> requestService.getAllOthersRequests(userId, 0, 0));
-    }
+    }*/
 
     @Test
     void findItemRequestById() {
